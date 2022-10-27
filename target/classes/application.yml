@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: local
+restClient:
+  routeInfoUrl: http://localhost:8085/v1/routeInfos
+  equipmentAvailabilityUrl: http://localhost:8084/v1/containerInfos
+  spaceAvailabilityUrl: http://localhost:8086/v1/getspaceInfos
+server:
+  port: 8090
