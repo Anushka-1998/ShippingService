@@ -12,12 +12,13 @@ import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 
 @SpringBootApplication
-public class SwiggyCloneApplication {
+public class ShippingApplication {
 
 	public static void main(String[] args) {
-		ConfigurableApplicationContext appContext = SpringApplication.run(SwiggyCloneApplication.class, args);
+		ConfigurableApplicationContext appContext = SpringApplication.run(ShippingApplication.class, args);
 		WorkerFactory factory = appContext.getBean(WorkerFactory.class);
 		ShippingActivity signUpActivity = appContext.getBean(ShippingActivity.class);
+	//	ShippingWorkFlow shippingWorkflow = appContext.getBean(ShippingWorkFlow.class);
 		Worker worker = factory.newWorker(ShippingWorkFlow.QUEUE_NAME);
 		worker.registerWorkflowImplementationTypes(ShippingWorkflowImpl.class);
 		worker.registerActivitiesImplementations(signUpActivity);

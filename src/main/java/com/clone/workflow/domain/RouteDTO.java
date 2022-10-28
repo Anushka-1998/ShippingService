@@ -18,6 +18,8 @@ public class RouteDTO {
     private String routeName;
     @JsonProperty("vesselSize")
     private double vesselSize;
+    @JsonProperty("spaceAvailability")
+    private boolean spaceAvailability;
 
 
 }

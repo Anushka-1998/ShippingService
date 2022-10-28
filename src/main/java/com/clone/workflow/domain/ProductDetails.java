@@ -24,11 +24,14 @@ public class ProductDetails implements Serializable {
     private String source;
     @JsonProperty("availableRoutes")
     private List<RouteDTO> availableRoutes;
+    @JsonProperty("equipmentAvailability")
+    private boolean equipmentAvailability;
     @JsonProperty("destination")
     private String destination;
     @JsonProperty("containerType")
     private String containerType;
     @JsonProperty("containerSize")
     private Double containerSize;
+
 
 }

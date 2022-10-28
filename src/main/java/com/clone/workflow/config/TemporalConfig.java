@@ -1,6 +1,8 @@
 package com.clone.workflow.config;
 
+import com.clone.workflow.repository.ProductDetailRepository;
 import com.clone.workflow.temporal.ShippingWorkflowImpl;
+import io.temporal.client.ActivityCompletionClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -40,7 +42,18 @@ public class TemporalConfig {
 
 	@Bean
 	public ShippingActivityImpl SignUpActivity() {
-		return new ShippingActivityImpl();
+		ActivityCompletionClient activityCompletionClient = workflowClient(workflowServiceStubs()).newActivityCompletionClient();
+		return new ShippingActivityImpl(activityCompletionClient);
 	}
+
+
+	/*@Bean
+	public ShippingWorkflowImpl shippingWorkflow() {
+
+		ProductDetailRepository productDetailRepository;
+		//ActivityCompletionClient activityCompletionClient = workflowClient(workflowServiceStubs()).newActivityCompletionClient();
+		return new ShippingWorkflowImpl(productDetailRepository);
+	}
+*/
 
 }

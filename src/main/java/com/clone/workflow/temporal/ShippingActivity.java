@@ -21,12 +21,4 @@ public interface ShippingActivity {
 	@ActivityMethod
 	List<RouteDTO> getSpaceAvailability(List<RouteDTO> routeDTOList, Double noOfContainers);
 
-	@ActivityMethod
-	void setOrderAccepted();
-
-	@ActivityMethod
-	void setOrderPickedUp();
-
-	@ActivityMethod
-	void setOrderDelivered();
 }

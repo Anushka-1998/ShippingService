@@ -28,22 +28,24 @@ public class RouteInfoRestClient {
     @Value("${restClient.routeInfoUrl}")
     private String routeInfoUrl;
 
-    public Mono<RouteInfo> retrieveRouteInfo(String source, String destination)  {
+    /**
+     * This method calls routeInfoService using webClient call
+     * @param source
+     * @param destination
+     * @return
+     */
 
-        log.info("I am able to reach before webclient");
+    public Mono<RouteInfo> retrieveRouteInfo(String source, String destination)  {
+        log.info("Inside retrieveRouteInfo() method");
         var url = UriComponentsBuilder.fromHttpUrl(routeInfoUrl)
                 .queryParam("source",source)
                 .queryParam("destination", destination)
                 .buildAndExpand().toUriString();
-        log.info("review url is {}",url);
-
+        log.info("routeInfo URL is : {}",url);
         return webclient
                 .get()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(RouteInfo.class);
     }
-
-
-
 }

@@ -1,7 +1,5 @@
 package com.clone.workflow.client;
 
-
-import com.clone.workflow.domain.RouteInfo;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +19,19 @@ public class EquipmentAvailabilityRestClient {
     @Value("${restClient.equipmentAvailabilityUrl}")
     private String equipmentAvailabilityUrl;
 
+    /**
+     * This method calls EquipmentAvailabilityService using webClient call
+     * @param source
+     * @param containerType
+     * @return
+     */
     public Mono<Double> retrieveEquipmentAvailability(String source, String containerType)  {
-
-        log.info("I am able to reach EquipmentAvailability webclient");
+        log.info("Inside retrieveEquipmentAvailability");
         var url = UriComponentsBuilder.fromHttpUrl(equipmentAvailabilityUrl)
                 .queryParam("source",source)
                 .queryParam("containerType",containerType)
                 .buildAndExpand().toUriString();
-        log.info("EquipmentAvailability url is {}",url);
+        log.info("EquipmentAvailability URL is {}",url);
 
         return webclient
                 .get()
@@ -36,7 +39,4 @@ public class EquipmentAvailabilityRestClient {
                 .retrieve()
                 .bodyToMono(Double.class);
     }
-
-
-
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.clone.workflow.service.ShippingService;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -15,58 +16,51 @@ import java.util.concurrent.ExecutionException;
 @RestController
 public class ShippingController {
 
-	@Autowired
-	ShippingService orderService;
+    @Autowired
+    ShippingService orderService;
 
+    /**
+     * This methods sends Od3cpRequestInfo as request Body and sends Mono<ProductDetails> as response
+     * @param requestInfo
+     * @return Mono<ProductDetails>
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    @PostMapping("/bookProductSendData")
+    public Mono<ProductDetails> bookProductSendData(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+        String requestId = UUID.randomUUID().toString();
+        requestInfo.setRequestId(requestId);
+        log.info("Request Details : {}",requestInfo);
+        return orderService.bookProductSendData(requestInfo);
+    }
 
+    /**
+     * This methods sends Od3cpRequestInfo as request Body and sends String as response
+     * @param requestInfo
+     * @return "Booking done"
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
 
-	@PostMapping("/startWorkflow")
-		public ProductDetails createOrder(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
-		log.info("workflow starts");
+	@PostMapping("/bookProductSendString")
+	public String bookProductSendString(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
 		String requestId = UUID.randomUUID().toString();
 		requestInfo.setRequestId(requestId);
-		ProductDetails productDetails = orderService.placeOrder(requestInfo);
-		return productDetails;
+        log.info("Request Details : {}",requestInfo);
+		String bookingString = orderService.bookProductSendString(requestInfo);
+		return bookingString;
 	}
 
 
+    /**
+     * This method takes in productId as input and sends Mono<ProductDetails> as response
+     * @param productId
+     * @return Mono<ProductDetails>
+     */
+    @GetMapping("/getProductDetails")
+    public Mono<ProductDetails> getProductDetails(@RequestParam("productId") String productId) {
+        log.info("get ProductDetails for productId : {}",productId);
+        return orderService.getProduct(productId);
+    }
 
-	@GetMapping("/startWorkflow")
-	public ProductDetails getProductDetails(@RequestParam("productId") String productId) {
-		log.info("get workflow starts");
-		ProductDetails productDetails = orderService.getProduct(productId);
-		return productDetails;
-	}
-
-
-
-
-
-
-
-//	public String createOrder(@RequestParam("id") String id,
-//							  @RequestParam("source") String source,
-//							  @RequestParam("destination") String destination) {
-//		log.info("workflow starts");
-//		orderService.placeOrder(id, source, destination);
-//		return "Order Placed";
-//	}
-
-	@PostMapping("/orderAccepted")
-	public String orderAccepted(@RequestParam("id") String id) {
-		orderService.makeOrderAccepted(id);
-		return "Order Accepted";
-	}
-
-	@PostMapping("/orderPickedUp")
-	public String orderPickedUp(@RequestParam("id") String id) {
-		orderService.makeOrderPickedUp(id);
-		return "Order Picked Up";
-	}
-
-	@PostMapping("/orderDelivered")
-	public String orderDelivered(@RequestParam("id") String id) {
-		orderService.makeOrderDelivered(id);
-		return "Order Delivered";
-	}
 }

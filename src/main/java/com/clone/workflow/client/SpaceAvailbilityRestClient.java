@@ -24,22 +24,23 @@ public class SpaceAvailbilityRestClient {
     @Value("${restClient.spaceAvailabilityUrl}")
     private String spaceAvailabilityUrl;
 
+    /**
+     * This method calls SpaceAvailability service using webClient call
+     * @param routeDTOList
+     * @param noOfContainers
+     * @return
+     */
     public Flux<RouteDTO> retrieveSpaceAvailability(List<RouteDTO> routeDTOList,Double noOfContainers)  {
-
-        log.info("I am able to reach before retrieveSpaceAvailability webclient");
+        log.info("Inside retrieveSpaceAvailability()");
         var url = UriComponentsBuilder.fromHttpUrl(spaceAvailabilityUrl)
                 .queryParam("noOfContainers",noOfContainers)
                 .buildAndExpand().toUriString();
-        log.info("spaceAvailabilityUrl is {}",url);
+        log.info("spaceAvailability URL is : {}",url);
         
         return webclient
                 .post()
                 .uri(url)
                 .body(Mono.just(routeDTOList), RouteDTO.class)
                 .retrieve()
-                .bodyToFlux(RouteDTO.class);
-    }
-
-
-
+                .bodyToFlux(RouteDTO.class);}
 }
