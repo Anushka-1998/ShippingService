@@ -37,6 +37,9 @@ public class EquipmentAvailabilityRestClient {
                 .get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(Double.class);
+                .bodyToMono(Double.class)
+                .onErrorMap(error -> {
+                    throw new RuntimeException("Exception caught while calling equipment availibility service due to "+error.getMessage());
+                });
     }
 }

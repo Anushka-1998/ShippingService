@@ -42,5 +42,9 @@ public class SpaceAvailbilityRestClient {
                 .uri(url)
                 .body(Mono.just(routeDTOList), RouteDTO.class)
                 .retrieve()
-                .bodyToFlux(RouteDTO.class);}
+                .bodyToFlux(RouteDTO.class)
+                .onErrorMap(error -> {
+                    throw new RuntimeException("Exception caught while calling space availibility service due to "+error.getMessage());
+                });
+    }
 }

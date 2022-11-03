@@ -2,6 +2,7 @@ package com.clone.workflow.client;
 
 
 import com.clone.workflow.domain.RouteInfo;
+import com.clone.workflow.exception.ExternalServiceCallException;
 import io.temporal.workflow.Workflow;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -46,6 +47,9 @@ public class RouteInfoRestClient {
                 .get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(RouteInfo.class);
+                .bodyToMono(RouteInfo.class)
+                .onErrorMap(error -> {
+                        throw new ExternalServiceCallException("exception while calling route service ..."+error.getMessage());
+                });
     }
 }

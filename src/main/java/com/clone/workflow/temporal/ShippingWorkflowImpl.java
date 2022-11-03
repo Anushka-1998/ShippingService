@@ -7,9 +7,11 @@ import com.clone.workflow.domain.Od3cpRequestInfo;
 import com.clone.workflow.domain.ProductDetails;
 import com.clone.workflow.domain.RouteDTO;
 import com.clone.workflow.domain.RouteInfo;
+import com.clone.workflow.exception.ExternalServiceCallException;
 import com.clone.workflow.repository.ProductDetailRepository;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.common.RetryOptions;
+import io.temporal.failure.ActivityFailure;
 import io.temporal.workflow.Async;
 import io.temporal.workflow.Promise;
 import io.temporal.workflow.Workflow;
@@ -19,10 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ShippingWorkflowImpl implements ShippingWorkFlow {
 
-	private final RetryOptions retryoptions = RetryOptions.newBuilder().setInitialInterval(Duration.ofSeconds(1))
-			.setMaximumInterval(Duration.ofSeconds(100)).setBackoffCoefficient(2).setMaximumAttempts(500).build();
-	private final ActivityOptions options = ActivityOptions.newBuilder().setStartToCloseTimeout(Duration.ofSeconds(30))
-			.setRetryOptions(retryoptions).build();
+	private final ActivityOptions options = ActivityOptions.newBuilder().setStartToCloseTimeout(Duration.ofSeconds(10))
+			.setRetryOptions(RetryOptions.newBuilder()
+					.setMaximumAttempts(2).build())
+			.build();
 	private final ShippingActivity activity = Workflow.newActivityStub(ShippingActivity.class, options);
 
 
@@ -35,10 +37,25 @@ public class ShippingWorkflowImpl implements ShippingWorkFlow {
 	 */
 	@Override
 	public ProductDetails startWorkflow(Od3cpRequestInfo requestInfo)  {
+
+		//Workflow.sleep(Duration.ofSeconds(10));
+//		if(requestInfo!= null){
+//			//Workflow.wrap(new NullPointerException("null poiter exception caught..."));
+//			throw new NullPointerException("null poiter exception caught...");
+//		}
+
 		log.info("Inside startWorkflow() method");
 		log.info("Calling getRouteDetails and equipmentAvailability service in parallel");
-		Promise<RouteInfo> possibleRoutes  = Async.function(activity::getRouteDetails, requestInfo.getSource(), requestInfo.getDestination());
-		Promise<Double> equipmentAvailability = Async.function(activity::getEquipmentAvailability,requestInfo.getSource(),requestInfo.getContainerType());
+		Promise<RouteInfo>	possibleRoutes = null;
+		Promise<Double> equipmentAvailability = null;
+		try {
+
+			possibleRoutes = Async.function(activity::getRouteDetails, requestInfo.getSource(), requestInfo.getDestination());
+			equipmentAvailability = Async.function(activity::getEquipmentAvailability,requestInfo.getSource(),requestInfo.getContainerType());
+
+		} catch (ExternalServiceCallException e) {
+			throw new ExternalServiceCallException("Exception caught while processing workflow "+e.getMessage());
+		}
 		List<RouteDTO> routeDTOList = possibleRoutes.get().getRouteList();
 		List<RouteDTO> availRouteList = routeDTOList;
 

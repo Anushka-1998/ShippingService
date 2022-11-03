@@ -2,6 +2,7 @@ package com.clone.workflow.temporal;
 
 import com.clone.workflow.domain.RouteDTO;
 import com.clone.workflow.domain.RouteInfo;
+import com.clone.workflow.exception.ExternalServiceCallException;
 import io.temporal.activity.ActivityInterface;
 import io.temporal.activity.ActivityMethod;
 import org.springframework.util.RouteMatcher;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface ShippingActivity {
 
 	@ActivityMethod
-	RouteInfo getRouteDetails(String source, String destination) ;
+	RouteInfo getRouteDetails(String source, String destination) throws ExternalServiceCallException;
 
 	@ActivityMethod
 	Double getEquipmentAvailability(String source, String typeOfContainer);
