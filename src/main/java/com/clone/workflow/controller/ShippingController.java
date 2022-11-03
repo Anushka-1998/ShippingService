@@ -43,11 +43,11 @@ public class ShippingController {
      */
 
 	@PostMapping("/bookProductSendString")
-	public String bookProductSendString(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+	public Mono<ProductDetails> bookProductSendString(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
 		String requestId = UUID.randomUUID().toString();
 		requestInfo.setRequestId(requestId);
         log.info("Request Details : {}",requestInfo);
-		String bookingString = orderService.bookProductSendString(requestInfo);
+        Mono<ProductDetails> bookingString = orderService.bookProductSendString(requestInfo);
 		return bookingString;
 	}
 

@@ -87,14 +87,11 @@ public class ShippingService {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-    public String bookProductSendString(Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+    public Mono<ProductDetails> bookProductSendString(Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
 		log.info("Inside bookProductSendString() method for requestInfo : {}",requestInfo);
 		ShippingWorkFlow workflow = createWorkFlowConnection(requestInfo.getRequestId());
         CompletableFuture<ProductDetails> productDetails = WorkflowClient.execute(workflow::startWorkflow, requestInfo);
-		ProductDetails product = productDetails.get();
-		log.info("Saving ProductDetails database : {}",product);
-		Mono<ProductDetails> productDetailsMono = productDetailRepository.save(product);
-        return "Booking done";
+        return Mono.just(productDetails.get());
     }
 
 
