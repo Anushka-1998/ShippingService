@@ -6,7 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="e2989326-335d-482f-81e0-b38d954d0558" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/src/main/java/com/clone/workflow/controller/ShippingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/clone/workflow/controller/ShippingController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/clone/workflow/service/ShippingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/clone/workflow/service/ShippingService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/ShippingApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/client/WebClientConfiguration.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/controller/ShippingController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/domain/ContainerDTO$ContainerDTOBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/domain/ContainerDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/clone/workflow/service/ShippingService.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
