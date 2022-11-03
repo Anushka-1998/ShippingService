@@ -52,11 +52,17 @@ public class ShippingActivityImpl implements ShippingActivity {
 	public void getPossibleRoutesAsync(byte[] taskToken, String source, String destination) {
 
 		log.info("Inside getPossibleRoutesAsync() method");
-		var routeInfoMono = routeInfoRestClient.retrieveRouteInfo(source, destination);
-		RouteInfo routeInfo = routeInfoMono.block();
-		log.info("RouteInfo : {}",routeInfo);
-		activityCompletionClient.complete(taskToken, routeInfo);
 
+		try {
+			var routeInfoMono = routeInfoRestClient.retrieveRouteInfo(source, destination);
+			RouteInfo routeInfo = routeInfoMono.block();
+			log.info("RouteInfo : {}",routeInfo);
+			activityCompletionClient.complete(taskToken, routeInfo);
+		}
+		catch (RuntimeException e) {
+			log.error("***** Exception getPossibleRoutesAsync: " + e.getMessage());
+			throw new RuntimeException("Exception caught ")
+		}
 	}
 
 	@Override

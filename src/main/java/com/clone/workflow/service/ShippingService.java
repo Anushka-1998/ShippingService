@@ -3,6 +3,8 @@ package com.clone.workflow.service;
 import com.clone.workflow.domain.Od3cpRequestInfo;
 import com.clone.workflow.domain.ProductDetails;
 import com.clone.workflow.repository.ProductDetailRepository;
+import io.temporal.client.WorkflowException;
+import io.temporal.common.RetryOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,8 +14,10 @@ import com.clone.workflow.temporal.ShippingWorkFlow;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
+import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -39,11 +43,29 @@ public class ShippingService {
 	 */
     public Mono<ProductDetails> bookProductSendData(Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
 		log.info("Inside bookProductSendData() method requestInfo : {}",requestInfo);
+		long start = System.currentTimeMillis();
         ShippingWorkFlow workflow = createWorkFlowConnection(requestInfo.getRequestId());
-        CompletableFuture<ProductDetails> productDetail = WorkflowClient.execute(workflow::startWorkflow, requestInfo);
-		log.info("Saving ProductDetails database : {}",productDetail);
-		Mono<ProductDetails> productDetailsMono = productDetailRepository.save(productDetail.get()).log();
-        return productDetailsMono;
+
+		ProductDetails productDetail = null;
+		try {
+			 //productDetail = WorkflowClient.execute(workflow::startWorkflow, requestInfo);
+			productDetail = workflow.startWorkflow(requestInfo);
+			log.info("Saving ProductDetails database : {}",productDetail);
+
+		}
+		catch (WorkflowException e) {
+			log.error("***** Exception: " + e.getMessage());
+			log.error("***** Cause: " + e.getCause().getClass().getName());
+			log.error("***** Cause message: " + e.getCause().getMessage());
+			long end = System.currentTimeMillis()-start;
+			log.error("time taken to execute " + end);
+		}
+
+		if(!ObjectUtils.isEmpty(productDetail)){
+			return productDetailRepository.save(productDetail).log();
+		}
+
+		return null;
     }
 
 	/**
@@ -82,10 +104,17 @@ public class ShippingService {
 	 * @return
 	 */
     public ShippingWorkFlow createWorkFlowConnection(String id) {
+		ShippingWorkFlow shippingWorkFlow = null;
 		log.info("Inside createWorkFlowConnection() method id : {}",id);
-        WorkflowOptions options = WorkflowOptions.newBuilder().setTaskQueue(ShippingWorkFlow.QUEUE_NAME)
-                .setWorkflowId("Order_" + id).build();
-        return workflowClient.newWorkflowStub(ShippingWorkFlow.class, options);
+        WorkflowOptions options = WorkflowOptions.newBuilder()
+				//.setWorkflowRunTimeout(Duration.ofSeconds(5))
+				.setTaskQueue(ShippingWorkFlow.QUEUE_NAME)
+                .setWorkflowId("Order_" + id)
+//				.setRetryOptions(RetryOptions.newBuilder()
+//						.setMaximumAttempts(2).build())
+				//.setDoNotRetry(NullPointerException.class.getName()).build())
+				.build();
+		return workflowClient.newWorkflowStub(ShippingWorkFlow.class, options);
     }
 
 }

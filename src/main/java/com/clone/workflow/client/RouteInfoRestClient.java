@@ -42,10 +42,23 @@ public class RouteInfoRestClient {
                 .queryParam("destination", destination)
                 .buildAndExpand().toUriString();
         log.info("routeInfo URL is : {}",url);
+//        return webclient
+//                .get()
+//                .uri(url)
+//                .retrieve()
+//                .onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
+//                        clientResponse -> clientResponse.bodyToMono(String.class).map(Exception::new))
+//                .onStatus(HttpStatus.NOT_FOUND::equals,
+//                        clientResponse -> clientResponse.bodyToMono(String.class).map(Exception::new))
+//                .bodyToMono(RouteInfo.class);
+
         return webclient
                 .get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(RouteInfo.class);
+                .bodyToMono(RouteInfo.class)
+                .onErrorMap(error -> {
+                    throw new RuntimeException("Exception caught while calling route service ..."+error.getMessage());
+                });
     }
 }
