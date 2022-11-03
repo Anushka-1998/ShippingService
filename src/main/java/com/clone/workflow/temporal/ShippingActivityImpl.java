@@ -5,6 +5,7 @@ import com.clone.workflow.client.RouteInfoRestClient;
 import com.clone.workflow.client.SpaceAvailbilityRestClient;
 import com.clone.workflow.domain.RouteDTO;
 import com.clone.workflow.domain.RouteInfo;
+import com.clone.workflow.exception.ExternalServiceCallException;
 import io.temporal.activity.Activity;
 import io.temporal.activity.ActivityExecutionContext;
 import io.temporal.client.ActivityCompletionClient;
@@ -21,94 +22,101 @@ import java.util.concurrent.ForkJoinPool;
 @Slf4j
 public class ShippingActivityImpl implements ShippingActivity {
 
-	private final ActivityCompletionClient activityCompletionClient;
+    private ActivityCompletionClient activityCompletionClient;
 
-	@Autowired
-	private RouteInfoRestClient routeInfoRestClient;
+    @Autowired
+    private RouteInfoRestClient routeInfoRestClient;
 
-	@Autowired
-	private EquipmentAvailabilityRestClient equipmentAvailabilityRestClient;
+    @Autowired
+    private EquipmentAvailabilityRestClient equipmentAvailabilityRestClient;
 
-	@Autowired
-	private SpaceAvailbilityRestClient spaceAvailbilityRestClient;
+    @Autowired
+    private SpaceAvailbilityRestClient spaceAvailbilityRestClient;
 
-	public ShippingActivityImpl(ActivityCompletionClient activityCompletionClient) {
-		this.activityCompletionClient = activityCompletionClient;
-	}
+    public ShippingActivityImpl() {
+    }
 
-	@Override
-	public RouteInfo getRouteDetails(String source, String destination)  {
+    public ShippingActivityImpl(ActivityCompletionClient activityCompletionClient) {
+        this.activityCompletionClient = activityCompletionClient;
+    }
 
-     log.info("Inside getRouteDetails() for source : {} | destination : {}",source,destination);
-			ActivityExecutionContext context = Activity.getExecutionContext();
-			byte[] taskToken = context.getTaskToken();
-			ForkJoinPool.commonPool().execute(() -> getPossibleRoutesAsync(taskToken, source, destination));
-			context.doNotCompleteOnReturn();
+    @Override
+    public RouteInfo getRouteDetails(String source, String destination) {
 
-		return RouteInfo.builder().build();
-	}
-
-
-	public void getPossibleRoutesAsync(byte[] taskToken, String source, String destination) {
-
-		log.info("Inside getPossibleRoutesAsync() method");
+        log.info("Inside getRouteDetails() for source : {} | destination : {}", source, destination);
+        ActivityExecutionContext context = Activity.getExecutionContext();
+        byte[] taskToken = context.getTaskToken();
 
 		try {
-			var routeInfoMono = routeInfoRestClient.retrieveRouteInfo(source, destination);
-			RouteInfo routeInfo = routeInfoMono.block();
-			log.info("RouteInfo : {}",routeInfo);
-			activityCompletionClient.complete(taskToken, routeInfo);
+			ForkJoinPool.commonPool().execute(() -> getPossibleRoutesAsync(taskToken, source, destination));
+			context.doNotCompleteOnReturn();
 		}
-		catch (RuntimeException e) {
-			log.error("***** Exception getPossibleRoutesAsync: " + e.getMessage());
-			throw new RuntimeException("Exception caught ")
+        catch (ExternalServiceCallException e) {
+			throw new ExternalServiceCallException("Exception while processing routeDetails "+e.getMessage());
 		}
-	}
 
-	@Override
-	public Double getEquipmentAvailability(String source, String typeOfContainer) {
+        return RouteInfo.builder().build();
+    }
 
-		log.info("Inside getEquipmentAvailability() for source : {} | typeOfContainer : {}",source,typeOfContainer);
-		ActivityExecutionContext context = Activity.getExecutionContext();
-		byte[] taskToken = context.getTaskToken();
-		ForkJoinPool.commonPool().execute(() -> getEquipmentAvailabilityAsync(taskToken, source, typeOfContainer));
-		context.doNotCompleteOnReturn();
-		return 0.0;
 
-	}
+    public void getPossibleRoutesAsync(byte[] taskToken, String source, String destination) {
 
-	public void getEquipmentAvailabilityAsync(byte[] taskToken, String source, String typeOfContainer){
+        log.info("Inside getPossibleRoutesAsync() method");
 
-		log.info("Inside getEquipmentAvailabilityAsync()");
-		var containerInfo = equipmentAvailabilityRestClient
-					.retrieveEquipmentAvailability(source, typeOfContainer);
+        try {
+            var routeInfoMono = routeInfoRestClient.retrieveRouteInfo(source, destination);
+            RouteInfo routeInfo = routeInfoMono.block();
+            log.info("RouteInfo : {}", routeInfo);
+            activityCompletionClient.complete(taskToken, routeInfo);
+        } catch (ExternalServiceCallException e) {
+            throw new ExternalServiceCallException(e.getMessage());
+        }
+    }
 
-		Double containerSize = containerInfo.block();
-		log.info("containerSize : {} for source : {}",containerSize,source);
-		activityCompletionClient.complete(taskToken, containerSize);
-	}
+    @Override
+    public Double getEquipmentAvailability(String source, String typeOfContainer) {
 
-	@Override
-	public List<RouteDTO> getSpaceAvailability(List<RouteDTO> routeDTOList,Double noOfContainers) {
+        log.info("Inside getEquipmentAvailability() for source : {} | typeOfContainer : {}", source, typeOfContainer);
+        ActivityExecutionContext context = Activity.getExecutionContext();
+        byte[] taskToken = context.getTaskToken();
+        ForkJoinPool.commonPool().execute(() -> getEquipmentAvailabilityAsync(taskToken, source, typeOfContainer));
+        context.doNotCompleteOnReturn();
+        return 0.0;
 
-		log.info("Inside getSpaceAvailability(), routeDTOList : {} | noOfContainers :{}",routeDTOList,noOfContainers);
-		ActivityExecutionContext context = Activity.getExecutionContext();
+    }
 
-		byte[] taskToken = context.getTaskToken();
-		ForkJoinPool.commonPool().execute(() -> getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers));
-		context.doNotCompleteOnReturn();
+    public void getEquipmentAvailabilityAsync(byte[] taskToken, String source, String typeOfContainer) {
 
-		return Arrays.asList(RouteDTO.builder().build());
-	}
+        log.info("Inside getEquipmentAvailabilityAsync()");
+        var containerInfo = equipmentAvailabilityRestClient
+                .retrieveEquipmentAvailability(source, typeOfContainer);
 
-	public void getSpaceAvailabilityAsync(byte[] taskToken, List<RouteDTO> routeDTOList,Double noOfContainers){
+        Double containerSize = containerInfo.block();
+        log.info("containerSize : {} for source : {}", containerSize, source);
+        activityCompletionClient.complete(taskToken, containerSize);
+    }
 
-		log.info("Inside getSpaceAvailabilityAsync() method");
-		Flux<RouteDTO> availableRoutes = spaceAvailbilityRestClient
-				.retrieveSpaceAvailability(routeDTOList,noOfContainers);
+    @Override
+    public List<RouteDTO> getSpaceAvailability(List<RouteDTO> routeDTOList, Double noOfContainers) {
 
-		List<RouteDTO> availSpaceRouteDTO = availableRoutes.collectList().block();
-		log.info("availSpaceRouteDTO : {}",availSpaceRouteDTO);
-		activityCompletionClient.complete(taskToken, availSpaceRouteDTO);
-	}
+        log.info("Inside getSpaceAvailability(), routeDTOList : {} | noOfContainers :{}", routeDTOList, noOfContainers);
+        ActivityExecutionContext context = Activity.getExecutionContext();
+
+        byte[] taskToken = context.getTaskToken();
+        ForkJoinPool.commonPool().execute(() -> getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers));
+        context.doNotCompleteOnReturn();
+
+        return Arrays.asList(RouteDTO.builder().build());
+    }
+
+    public void getSpaceAvailabilityAsync(byte[] taskToken, List<RouteDTO> routeDTOList, Double noOfContainers) {
+
+        log.info("Inside getSpaceAvailabilityAsync() method");
+        Flux<RouteDTO> availableRoutes = spaceAvailbilityRestClient
+                .retrieveSpaceAvailability(routeDTOList, noOfContainers);
+
+        List<RouteDTO> availSpaceRouteDTO = availableRoutes.collectList().block();
+        log.info("availSpaceRouteDTO : {}", availSpaceRouteDTO);
+        activityCompletionClient.complete(taskToken, availSpaceRouteDTO);
+    }
 }

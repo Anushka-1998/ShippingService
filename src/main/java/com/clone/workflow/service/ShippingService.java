@@ -107,11 +107,11 @@ public class ShippingService {
 		ShippingWorkFlow shippingWorkFlow = null;
 		log.info("Inside createWorkFlowConnection() method id : {}",id);
         WorkflowOptions options = WorkflowOptions.newBuilder()
-				//.setWorkflowRunTimeout(Duration.ofSeconds(5))
+				.setWorkflowRunTimeout(Duration.ofSeconds(50))
 				.setTaskQueue(ShippingWorkFlow.QUEUE_NAME)
                 .setWorkflowId("Order_" + id)
-//				.setRetryOptions(RetryOptions.newBuilder()
-//						.setMaximumAttempts(2).build())
+				.setRetryOptions(RetryOptions.newBuilder()
+						.setMaximumAttempts(2).build())
 				//.setDoNotRetry(NullPointerException.class.getName()).build())
 				.build();
 		return workflowClient.newWorkflowStub(ShippingWorkFlow.class, options);

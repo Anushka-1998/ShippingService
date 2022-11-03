@@ -1,5 +1,7 @@
 package com.clone.workflow;
 
+import com.clone.workflow.exception.ExternalServiceCallException;
+import com.clone.workflow.temporal.ShippingActivityImpl;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.worker.WorkflowImplementationOptions;
 import org.springframework.boot.SpringApplication;
@@ -29,11 +31,12 @@ public class ShippingApplication {
 				WorkflowImplementationOptions.newBuilder()
 						.setFailWorkflowExceptionTypes(NullPointerException.class)
 						.setFailWorkflowExceptionTypes(RuntimeException.class)
-						.setFailWorkflowExceptionTypes(Exception.class)
+						.setFailWorkflowExceptionTypes(ExternalServiceCallException.class)
 						.build();
 
 		worker.registerWorkflowImplementationTypes(options, ShippingWorkflowImpl.class);
 		worker.registerActivitiesImplementations(signUpActivity);
+//		worker.registerActivitiesImplementations(new ShippingActivityImpl());
 		factory.start();
 	}
 }
