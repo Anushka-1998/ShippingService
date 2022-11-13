@@ -10,7 +10,7 @@ spring:
     streams:
       security-protocol: SASL_SSL
       bootstrap-servers: "localhost:29092"
-      application-id: "debezium-kstream-id"
+      application-id: "temporal.kafka-id"
       login-module: org.apache.kafka.common.security.plain.PlainLoginModule
       sasl-mechanism: PLAIN
       consumer:
