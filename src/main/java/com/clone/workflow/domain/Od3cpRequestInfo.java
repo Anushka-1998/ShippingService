@@ -1,7 +1,9 @@
 package com.clone.workflow.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.data.annotation.Id;
 
 import java.io.Serializable;
 
@@ -12,8 +14,10 @@ import java.io.Serializable;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties
 public class Od3cpRequestInfo implements Serializable {
     @JsonProperty("requestId")
+    @Id
     private String requestId;
     @JsonProperty("source")
     private String source;
@@ -33,4 +37,8 @@ public class Od3cpRequestInfo implements Serializable {
     private double noOfContainers;
     @JsonProperty("cargoWeight")
     private double cargoWeight;
+
+    @JsonProperty("status")
+    private String status= "active";
+
 }

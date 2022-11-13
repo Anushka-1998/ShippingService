@@ -1,7 +1,6 @@
 package com.clone.workflow.client;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,17 +20,18 @@ public class EquipmentAvailabilityRestClient {
 
     /**
      * This method calls EquipmentAvailabilityService using webClient call
+     *
      * @param source
      * @param containerType
      * @return
      */
-    public Mono<Double> retrieveEquipmentAvailability(String source, String containerType)  {
+    public Mono<Double> retrieveEquipmentAvailability(String source, String containerType) {
         log.info("Inside retrieveEquipmentAvailability");
         var url = UriComponentsBuilder.fromHttpUrl(equipmentAvailabilityUrl)
-                .queryParam("source",source)
-                .queryParam("containerType",containerType)
+                .queryParam("source", source)
+                .queryParam("containerType", containerType)
                 .buildAndExpand().toUriString();
-        log.info("EquipmentAvailability URL is {}",url);
+        log.info("EquipmentAvailability URL is {}", url);
 
         return webclient
                 .get()
@@ -39,7 +39,7 @@ public class EquipmentAvailabilityRestClient {
                 .retrieve()
                 .bodyToMono(Double.class)
                 .onErrorMap(error -> {
-                    throw new RuntimeException("Exception caught while calling equipment availibility service due to "+error.getMessage());
+                    throw new RuntimeException("Exception caught while calling equipment availibility service due to " + error.getMessage());
                 });
     }
 }

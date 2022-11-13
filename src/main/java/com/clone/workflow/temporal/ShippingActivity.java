@@ -1,5 +1,6 @@
 package com.clone.workflow.temporal;
 
+import com.clone.workflow.domain.Od3cpRequestInfo;
 import com.clone.workflow.domain.RouteDTO;
 import com.clone.workflow.domain.RouteInfo;
 import com.clone.workflow.exception.ExternalServiceCallException;
@@ -21,5 +22,6 @@ public interface ShippingActivity {
 
 	@ActivityMethod
 	List<RouteDTO> getSpaceAvailability(List<RouteDTO> routeDTOList, Double noOfContainers);
+
 
 }

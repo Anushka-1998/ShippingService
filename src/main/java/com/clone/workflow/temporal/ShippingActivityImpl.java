@@ -9,13 +9,10 @@ import com.clone.workflow.exception.ExternalServiceCallException;
 import io.temporal.activity.Activity;
 import io.temporal.activity.ActivityExecutionContext;
 import io.temporal.client.ActivityCompletionClient;
-import io.temporal.failure.ActivityFailure;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
@@ -47,13 +44,12 @@ public class ShippingActivityImpl implements ShippingActivity {
         ActivityExecutionContext context = Activity.getExecutionContext();
         byte[] taskToken = context.getTaskToken();
 
-		try {
-			ForkJoinPool.commonPool().execute(() -> getPossibleRoutesAsync(taskToken, source, destination));
-			context.doNotCompleteOnReturn();
-		}
-        catch (ExternalServiceCallException e) {
-			throw new ExternalServiceCallException("Exception while processing routeDetails "+e.getMessage());
-		}
+        try {
+            ForkJoinPool.commonPool().execute(() -> getPossibleRoutesAsync(taskToken, source, destination));
+            context.doNotCompleteOnReturn();
+        } catch (ExternalServiceCallException e) {
+            throw new ExternalServiceCallException("Exception while processing routeDetails " + e.getMessage());
+        }
 
         return RouteInfo.builder().build();
     }
@@ -106,7 +102,7 @@ public class ShippingActivityImpl implements ShippingActivity {
         ForkJoinPool.commonPool().execute(() -> getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers));
         context.doNotCompleteOnReturn();
 
-        return Arrays.asList(RouteDTO.builder().build());
+        return List.of(RouteDTO.builder().build());
     }
 
     public void getSpaceAvailabilityAsync(byte[] taskToken, List<RouteDTO> routeDTOList, Double noOfContainers) {

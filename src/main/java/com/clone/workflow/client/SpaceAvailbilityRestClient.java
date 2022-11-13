@@ -3,7 +3,6 @@ package com.clone.workflow.client;
 
 import com.clone.workflow.domain.RouteDTO;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -36,7 +35,7 @@ public class SpaceAvailbilityRestClient {
                 .queryParam("noOfContainers",noOfContainers)
                 .buildAndExpand().toUriString();
         log.info("spaceAvailability URL is : {}",url);
-        
+
         return webclient
                 .post()
                 .uri(url)

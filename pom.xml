@@ -15,7 +15,7 @@
 	<name>Swiggy-Clone</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 	</properties>
 	<dependencies>
 <!--		&lt;!&ndash; https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web &ndash;&gt;-->
@@ -30,14 +30,19 @@
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 
-
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.temporal/temporal-sdk -->
-		<dependency>
-			<groupId>io.temporal</groupId>
+		<dependency><groupId>io.temporal</groupId>
 			<artifactId>temporal-sdk</artifactId>
-			<version>1.0.9</version>
-		</dependency>
+			<version>1.11.0</version></dependency>
 
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.boot</groupId>-->
@@ -96,6 +101,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>11</source>
+					<target>11</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
