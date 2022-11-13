@@ -5,7 +5,6 @@ import com.clone.workflow.domain.ProductDetails;
 import com.clone.workflow.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RestController
@@ -27,13 +25,11 @@ public class ShippingController {
     /**
      * This methods sends Od3cpRequestInfo as request Body and sends Mono<ProductDetails> as response
      *
-     * @param requestInfo
+     * @param requestInfo od3cp details of the request
      * @return Mono<ProductDetails>
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
     @PostMapping("/bookProductSendData")
-    public Mono<ProductDetails> bookProductSendData(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+    public Mono<ProductDetails> bookProductSendData(@RequestBody Od3cpRequestInfo requestInfo) {
         String requestId = UUID.randomUUID().toString();
         requestInfo.setRequestId(requestId);
         log.info("Request Details : {}", requestInfo);
@@ -43,26 +39,24 @@ public class ShippingController {
     /**
      * This methods sends Od3cpRequestInfo as request Body and sends String as response
      *
-     * @param requestInfo
+     * @param requestInfo od3cp details of the request
      * @return "Booking done"
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
 
     @PostMapping("/bookProductSendString")
-    public Mono<ProductDetails> bookProductSendString(@RequestBody Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+    public Mono<ProductDetails> bookProductSendString(@RequestBody Od3cpRequestInfo requestInfo) {
         String requestId = UUID.randomUUID().toString();
         requestInfo.setRequestId(requestId);
         log.info("Request Details : {}", requestInfo);
-        Mono<ProductDetails> bookingString = orderService.bookProductSendString(requestInfo);
-        return bookingString;
+        return orderService.bookProductSendString(requestInfo);
+
     }
 
 
     /**
      * This method takes in productId as input and sends Mono<ProductDetails> as response
      *
-     * @param productId
+     * @param productId id of the product
      * @return Mono<ProductDetails>
      */
     @GetMapping("/getProductDetails")

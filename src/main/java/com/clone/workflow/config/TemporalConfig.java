@@ -1,42 +1,33 @@
 package com.clone.workflow.config;
 
 import com.clone.workflow.temporal.RouteActivityImpl;
-import io.temporal.activity.ActivityOptions;
-import io.temporal.client.ActivityCompletionClient;
-import io.temporal.common.RetryOptions;
-import io.temporal.workflow.Workflow;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
-
 import com.clone.workflow.temporal.ShippingActivityImpl;
-
+import io.temporal.client.ActivityCompletionClient;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowClientOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
 import io.temporal.worker.WorkerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
-
-@Component
 @Configuration
 public class TemporalConfig {
 
-    private String temporalServiceAddress = "127.0.0.1:7233";
+    private static final String TEMPORAL_SERVER = "127.0.0.1:7233";
 
-    private String temporalNamespace = "default";
+    private static final String TEMPORAL_NAMESPACE = "default";
 
     @Bean
     public WorkflowServiceStubs workflowServiceStubs() {
         return WorkflowServiceStubs
-                .newInstance(WorkflowServiceStubsOptions.newBuilder().setTarget(temporalServiceAddress).build());
+                .newInstance(WorkflowServiceStubsOptions.newBuilder().setTarget(TEMPORAL_SERVER).build());
     }
 
     @Bean
     public WorkflowClient workflowClient(WorkflowServiceStubs workflowServiceStubs) {
         return WorkflowClient.newInstance(workflowServiceStubs,
-                WorkflowClientOptions.newBuilder().setNamespace(temporalNamespace).build());
+                WorkflowClientOptions.newBuilder().setNamespace(TEMPORAL_NAMESPACE).build());
     }
 
     @Bean
@@ -45,25 +36,16 @@ public class TemporalConfig {
     }
 
     @Bean
-    public ShippingActivityImpl SignUpActivity() {
+    public ShippingActivityImpl signUpActivity() {
         ActivityCompletionClient activityCompletionClient = workflowClient(workflowServiceStubs()).newActivityCompletionClient();
         return new ShippingActivityImpl(activityCompletionClient);
     }
 
     @Bean
-    public RouteActivityImpl SignUpActivity2() {
+    public RouteActivityImpl routeSignUpActivity() {
         ActivityCompletionClient activityCompletionClient = workflowClient(workflowServiceStubs()).newActivityCompletionClient();
         return new RouteActivityImpl(activityCompletionClient);
     }
 
-
-	/*@Bean
-	public ShippingWorkflowImpl shippingWorkflow() {
-
-		ProductDetailRepository productDetailRepository;
-		//ActivityCompletionClient activityCompletionClient = workflowClient(workflowServiceStubs()).newActivityCompletionClient();
-		return new ShippingWorkflowImpl(productDetailRepository);
-	}
-*/
 
 }

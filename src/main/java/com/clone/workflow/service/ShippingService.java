@@ -2,7 +2,6 @@ package com.clone.workflow.service;
 
 import com.clone.workflow.domain.Od3cpRequestInfo;
 import com.clone.workflow.domain.ProductDetails;
-import com.clone.workflow.domain.RouteInfo;
 import com.clone.workflow.repository.ProductDetailRepository;
 import com.clone.workflow.temporal.RouteWorkflow;
 import com.clone.workflow.temporal.ShippingWorkFlow;
@@ -10,43 +9,38 @@ import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowException;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.common.RetryOptions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ShippingService {
 
+    private final WorkflowClient workflowClient;
 
-    @Autowired
-    WorkflowClient workflowClient;
+    private final ProductDetailRepository productDetailRepository;
 
-    @Autowired
-    ProductDetailRepository productDetailRepository;
 
     /**
      * This method initiates the workflow execution and saves the data in mongodb
      *
-     * @param requestInfo
+     * @param requestInfo od3cp details of the request
      * @return Mono<ProductDetails>
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
-    public Mono<ProductDetails> bookProductSendData(Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+    public Mono<ProductDetails> bookProductSendData(Od3cpRequestInfo requestInfo) {
         log.info("Inside bookProductSendData() method requestInfo : {}", requestInfo);
         long start = System.currentTimeMillis();
         ShippingWorkFlow workflow = createWorkFlowConnection(requestInfo.getRequestId());
 
         ProductDetails productDetail = null;
         try {
-            //productDetail = WorkflowClient.execute(workflow::startWorkflow, requestInfo);
             productDetail = workflow.startWorkflow(requestInfo);
             log.info("Saving ProductDetails database : {}", productDetail);
 
@@ -68,7 +62,7 @@ public class ShippingService {
     /**
      * This method fetches data from mongoDb respository based on productId
      *
-     * @param productId
+     * @param productId selected product id
      * @return Mono<ProductDetails>
      */
     public Mono<ProductDetails> getProduct(String productId) {
@@ -81,35 +75,31 @@ public class ShippingService {
     /**
      * This method initiates the workflow execution and saves the data in mongodb
      *
-     * @param requestInfo
+     * @param requestInfo od3cp details of the request
      * @return String
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
-    public Mono<ProductDetails> bookProductSendString(Od3cpRequestInfo requestInfo) throws ExecutionException, InterruptedException {
+    public Mono<ProductDetails> bookProductSendString(Od3cpRequestInfo requestInfo){
         log.info("Inside bookProductSendString() method for requestInfo : {}", requestInfo);
         ShippingWorkFlow workflow = createWorkFlowConnection(requestInfo.getRequestId());
         CompletableFuture<ProductDetails> productDetails = WorkflowClient.execute(workflow::startWorkflow, requestInfo);
-        return Mono.just(productDetails.get());
+        return Mono.just(productDetails.getNow(ProductDetails.builder().build()));
     }
 
 
     /**
      * This method sets TaskQueue name, workflowId and returns ShippingWorkFlow as response
      *
-     * @param id
-     * @return
+     * @param id workflow id to be used
+     * @return return workflow client
      */
     public ShippingWorkFlow createWorkFlowConnection(String id) {
-        ShippingWorkFlow shippingWorkFlow = null;
         log.info("Inside createWorkFlowConnection() method id : {}", id);
         WorkflowOptions options = WorkflowOptions.newBuilder()
                 .setWorkflowRunTimeout(Duration.ofSeconds(50))
                 .setTaskQueue(ShippingWorkFlow.QUEUE_NAME)
-                .setWorkflowId("Order_" + id)
+                .setWorkflowId("Workflow_" + id)
                 .setRetryOptions(RetryOptions.newBuilder()
                         .setMaximumAttempts(2).build())
-                //.setDoNotRetry(NullPointerException.class.getName()).build())
                 .build();
         return workflowClient.newWorkflowStub(ShippingWorkFlow.class, options);
     }
@@ -122,7 +112,6 @@ public class ShippingService {
                 .setWorkflowId("Order_" + routeInfo.getRequestId())
                 .setRetryOptions(RetryOptions.newBuilder()
                         .setMaximumAttempts(2).build())
-                //.setDoNotRetry(NullPointerException.class.getName()).build())
                 .build();
         var workflow = workflowClient.newWorkflowStub(RouteWorkflow.class, options);
 
