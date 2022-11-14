@@ -59,7 +59,7 @@ public class ShippingWorkflowImpl implements ShippingWorkFlow {
 			log.info("Both routes and equipment is available");
 			log.info("Calling space Availability");
 			try {
-				//availRouteList = activity.getSpaceAvailability(routeDTOList,requestInfo.getNoOfContainers());
+				availRouteList = activity.getSpaceAvailability(routeDTOList,requestInfo.getNoOfContainers());
 			} catch (ExternalServiceCallException e) {
 				throw new ExternalServiceCallException("Exception caught while processing workflow "+e.getMessage());
 			}
