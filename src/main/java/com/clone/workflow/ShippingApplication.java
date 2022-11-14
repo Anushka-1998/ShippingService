@@ -16,27 +16,26 @@ import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 
 import java.time.Duration;
+import java.util.TreeSet;
 
 @SpringBootApplication
 public class ShippingApplication {
 
 	public static void main(String[] args) {
+
 		ConfigurableApplicationContext appContext = SpringApplication.run(ShippingApplication.class, args);
 		WorkerFactory factory = appContext.getBean(WorkerFactory.class);
 		ShippingActivity signUpActivity = appContext.getBean(ShippingActivity.class);
-	//	ShippingWorkFlow shippingWorkflow = appContext.getBean(ShippingWorkFlow.class);
 		Worker worker = factory.newWorker(ShippingWorkFlow.QUEUE_NAME);
 
 		WorkflowImplementationOptions options =
 				WorkflowImplementationOptions.newBuilder()
-						.setFailWorkflowExceptionTypes(NullPointerException.class)
-						.setFailWorkflowExceptionTypes(RuntimeException.class)
+						//.setFailWorkflowExceptionTypes(NullPointerException.class)
 						.setFailWorkflowExceptionTypes(ExternalServiceCallException.class)
 						.build();
 
 		worker.registerWorkflowImplementationTypes(options, ShippingWorkflowImpl.class);
 		worker.registerActivitiesImplementations(signUpActivity);
-//		worker.registerActivitiesImplementations(new ShippingActivityImpl());
 		factory.start();
 	}
 }

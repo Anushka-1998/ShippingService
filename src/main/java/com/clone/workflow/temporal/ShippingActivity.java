@@ -14,7 +14,7 @@ import java.util.List;
 public interface ShippingActivity {
 
 	@ActivityMethod
-	RouteInfo getRouteDetails(String source, String destination) throws ExternalServiceCallException;
+	RouteInfo getRouteDetails(String source, String destination);
 
 	@ActivityMethod
 	Double getEquipmentAvailability(String source, String typeOfContainer);

@@ -49,7 +49,7 @@ public class RouteInfoRestClient {
                 .retrieve()
                 .bodyToMono(RouteInfo.class)
                 .onErrorMap(error -> {
-                        throw new ExternalServiceCallException("exception while calling route service ..."+error.getMessage());
+                        throw new ExternalServiceCallException("exception while calling route service: "+error.getMessage());
                 });
     }
 }

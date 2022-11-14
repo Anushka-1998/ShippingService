@@ -33,23 +33,26 @@ public class ShippingActivityImpl implements ShippingActivity {
     @Autowired
     private SpaceAvailbilityRestClient spaceAvailbilityRestClient;
 
-    public ShippingActivityImpl() {
-    }
-
     public ShippingActivityImpl(ActivityCompletionClient activityCompletionClient) {
         this.activityCompletionClient = activityCompletionClient;
     }
 
+    private void sleep(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000);
+        } catch (InterruptedException ee) {
+            ee.printStackTrace();
+        }
+    }
     @Override
-    public RouteInfo getRouteDetails(String source, String destination) {
+    public RouteInfo getRouteDetails(String source, String destination) throws ExternalServiceCallException {
 
         log.info("Inside getRouteDetails() for source : {} | destination : {}", source, destination);
         ActivityExecutionContext context = Activity.getExecutionContext();
         byte[] taskToken = context.getTaskToken();
 
 		try {
-			ForkJoinPool.commonPool().execute(() -> getPossibleRoutesAsync(taskToken, source, destination));
-			context.doNotCompleteOnReturn();
+            getPossibleRoutesAsync(taskToken, source, destination);
 		}
         catch (ExternalServiceCallException e) {
 			throw new ExternalServiceCallException("Exception while processing routeDetails "+e.getMessage());
@@ -75,12 +78,20 @@ public class ShippingActivityImpl implements ShippingActivity {
 
     @Override
     public Double getEquipmentAvailability(String source, String typeOfContainer) {
+       // sleep(10);
 
-        log.info("Inside getEquipmentAvailability() for source : {} | typeOfContainer : {}", source, typeOfContainer);
-        ActivityExecutionContext context = Activity.getExecutionContext();
-        byte[] taskToken = context.getTaskToken();
-        ForkJoinPool.commonPool().execute(() -> getEquipmentAvailabilityAsync(taskToken, source, typeOfContainer));
-        context.doNotCompleteOnReturn();
+        try {
+            log.info("Inside getEquipmentAvailability() for source : {} | typeOfContainer : {}", source, typeOfContainer);
+            ActivityExecutionContext context = Activity.getExecutionContext();
+            byte[] taskToken = context.getTaskToken();
+//            ForkJoinPool.commonPool().execute(() -> getEquipmentAvailabilityAsync(taskToken, source, typeOfContainer));
+//            context.doNotCompleteOnReturn();
+            getEquipmentAvailabilityAsync(taskToken, source, typeOfContainer);
+        }
+        catch (ExternalServiceCallException e){
+            throw new ExternalServiceCallException(e.getMessage());
+        }
+
         return 0.0;
 
     }
@@ -88,35 +99,56 @@ public class ShippingActivityImpl implements ShippingActivity {
     public void getEquipmentAvailabilityAsync(byte[] taskToken, String source, String typeOfContainer) {
 
         log.info("Inside getEquipmentAvailabilityAsync()");
-        var containerInfo = equipmentAvailabilityRestClient
-                .retrieveEquipmentAvailability(source, typeOfContainer);
 
-        Double containerSize = containerInfo.block();
-        log.info("containerSize : {} for source : {}", containerSize, source);
-        activityCompletionClient.complete(taskToken, containerSize);
+        try{
+            var containerInfo = equipmentAvailabilityRestClient
+                    .retrieveEquipmentAvailability(source, typeOfContainer);
+            Double containerSize = containerInfo.block();
+            log.info("containerSize : {} for source : {}", containerSize, source);
+            activityCompletionClient.complete(taskToken, containerSize);
+        }
+        catch (ExternalServiceCallException e){
+            throw new ExternalServiceCallException(e.getMessage());
+        }
+
+
+
     }
 
     @Override
     public List<RouteDTO> getSpaceAvailability(List<RouteDTO> routeDTOList, Double noOfContainers) {
 
-        log.info("Inside getSpaceAvailability(), routeDTOList : {} | noOfContainers :{}", routeDTOList, noOfContainers);
-        ActivityExecutionContext context = Activity.getExecutionContext();
+        try {
 
-        byte[] taskToken = context.getTaskToken();
-        ForkJoinPool.commonPool().execute(() -> getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers));
-        context.doNotCompleteOnReturn();
+            log.info("Inside getSpaceAvailability(), routeDTOList : {} | noOfContainers :{}", routeDTOList, noOfContainers);
+            ActivityExecutionContext context = Activity.getExecutionContext();
+
+            byte[] taskToken = context.getTaskToken();
+//        ForkJoinPool.commonPool().execute(() -> getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers));
+//        context.doNotCompleteOnReturn();
+            getSpaceAvailabilityAsync(taskToken, routeDTOList, noOfContainers);
+        }
+
+        catch (ExternalServiceCallException e){
+            throw new ExternalServiceCallException(e.getMessage());
+        }
 
         return Arrays.asList(RouteDTO.builder().build());
     }
 
     public void getSpaceAvailabilityAsync(byte[] taskToken, List<RouteDTO> routeDTOList, Double noOfContainers) {
+        try {
+            log.info("Inside getSpaceAvailabilityAsync() method");
+            Flux<RouteDTO> availableRoutes = spaceAvailbilityRestClient
+                    .retrieveSpaceAvailability(routeDTOList, noOfContainers);
 
-        log.info("Inside getSpaceAvailabilityAsync() method");
-        Flux<RouteDTO> availableRoutes = spaceAvailbilityRestClient
-                .retrieveSpaceAvailability(routeDTOList, noOfContainers);
-
-        List<RouteDTO> availSpaceRouteDTO = availableRoutes.collectList().block();
-        log.info("availSpaceRouteDTO : {}", availSpaceRouteDTO);
-        activityCompletionClient.complete(taskToken, availSpaceRouteDTO);
+            List<RouteDTO> availSpaceRouteDTO = availableRoutes.collectList().block();
+            log.info("availSpaceRouteDTO : {}", availSpaceRouteDTO);
+            activityCompletionClient.complete(taskToken, availSpaceRouteDTO);
+        }
+        catch (ExternalServiceCallException e)
+        {
+            throw new ExternalServiceCallException(e.getMessage());
+        }
     }
 }

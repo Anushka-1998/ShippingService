@@ -1,5 +1,6 @@
 package com.clone.workflow.client;
 
+import com.clone.workflow.exception.ExternalServiceCallException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class EquipmentAvailabilityRestClient {
                 .retrieve()
                 .bodyToMono(Double.class)
                 .onErrorMap(error -> {
-                    throw new RuntimeException("Exception caught while calling equipment availibility service due to "+error.getMessage());
+                    throw new ExternalServiceCallException("Exception caught while calling equipment availibility service due to "+error.getMessage());
                 });
     }
 }

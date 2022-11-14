@@ -2,6 +2,7 @@ package com.clone.workflow.client;
 
 
 import com.clone.workflow.domain.RouteDTO;
+import com.clone.workflow.exception.ExternalServiceCallException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class SpaceAvailbilityRestClient {
                 .retrieve()
                 .bodyToFlux(RouteDTO.class)
                 .onErrorMap(error -> {
-                    throw new RuntimeException("Exception caught while calling space availibility service due to "+error.getMessage());
+                    throw new ExternalServiceCallException("Exception caught while calling space availibility service due to "+error.getMessage());
                 });
     }
 }
