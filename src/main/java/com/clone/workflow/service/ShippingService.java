@@ -107,7 +107,7 @@ public class ShippingService {
     public Mono<String> saveRequest(Od3cpRequestInfo routeInfo) {
         log.info("Inside createWorkFlowConnection() method id : {}", routeInfo.getRequestId());
         WorkflowOptions options = WorkflowOptions.newBuilder()
-                .setWorkflowRunTimeout(Duration.ofSeconds(50))
+                .setWorkflowRunTimeout(Duration.ofSeconds(500))
                 .setTaskQueue(RouteWorkflow.SAVE_PRODUCT_QUEUE)
                 .setWorkflowId("Order_" + routeInfo.getRequestId())
                 .setRetryOptions(RetryOptions.newBuilder()

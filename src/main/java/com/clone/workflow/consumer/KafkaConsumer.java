@@ -4,6 +4,9 @@ import com.clone.workflow.domain.Od3cpRequestInfo;
 import com.clone.workflow.service.ShippingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.temporal.client.WorkflowClient;
+import io.temporal.client.WorkflowOptions;
+import io.temporal.client.WorkflowStub;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,9 +21,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KafkaConsumer {
 
+    private final WorkflowClient client;
     ObjectMapper mapper = new ObjectMapper();
 
-    private final ShippingService shippingService;
 
     @KafkaListener(topics = "consumer-topic-1", containerFactory = "kafkaListenerContainerFactory")
     public void consumeEvents(@Payload String payload,
@@ -33,10 +36,18 @@ public class KafkaConsumer {
 
         var request = mapper.readValue(payload, Od3cpRequestInfo.class);
         acknowledgment.acknowledge();
-        shippingService.saveRequest(request)
-                .doOnNext(res -> acknowledgment.acknowledge())
-                .doOnNext(res-> log.info("*****Message acknowledged*****"))
-                .subscribe();
+        WorkflowStub untypedWorkflowStub = client.newUntypedWorkflowStub("save Request",
+                WorkflowOptions.newBuilder()
+                        .setWorkflowId("Order_" + request.getRequestId())
+                        .setTaskQueue("SAVE-PRODUCT-QUEUE")
+                        .build());
+        if (request.getSource().equalsIgnoreCase("CN")) {
+            untypedWorkflowStub.signalWithStart("startKafkaEvent",  new Object[]{request}, new Object[]{request});
+
+        } else {
+            untypedWorkflowStub.signalWithStart("resumeKafkaEvent", new Object[]{request}, new Object[]{request})
+            ;
+        }
 
     }
 }
